@@ -5,7 +5,7 @@ import { Text } from 'src/ui/text';
 import clsx from 'clsx';
 
 import styles from './ArticleParamsForm.module.scss';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Select } from 'src/ui/select';
 import { RadioGroup } from 'src/ui/radio-group/RadioGroup';
 import {
@@ -20,13 +20,16 @@ import { Separator } from 'src/ui/separator';
 
 export type ArticleParamsFormProps = {
 	setPageState: (state: typeof defaultArticleState) => void;
+	initialState: typeof defaultArticleState;
 };
 
 export const ArticleParamsForm = (props: ArticleParamsFormProps) => {
-	const { setPageState } = props;
+	const { setPageState, initialState } = props;
 
 	const [isPanelOpen, setIsPanelOpen] = useState<boolean>(false);
-	const [currentState, setCurrentState] = useState(defaultArticleState);
+	const [currentState, setCurrentState] = useState(initialState);
+
+	const sidebarRef = useRef<HTMLElement>(null);
 
 	const updateField =
 		(field: keyof typeof defaultArticleState) => (value: OptionType) => {
@@ -43,9 +46,29 @@ export const ArticleParamsForm = (props: ArticleParamsFormProps) => {
 
 	const handleFormReset = (event: FormEvent<HTMLFormElement>) => {
 		event.preventDefault();
-		setCurrentState(defaultArticleState);
-		setPageState(defaultArticleState);
+		setCurrentState(initialState);
+		setPageState(initialState);
 	};
+
+	useEffect(() => {
+		if (!isPanelOpen) return;
+
+		const handleClickOutside = (event: MouseEvent) => {
+			if (
+				sidebarRef.current &&
+				!sidebarRef.current.contains(event.target as Node)
+			) {
+				setIsPanelOpen(false);
+			}
+		};
+
+		document.addEventListener('mousedown', handleClickOutside);
+
+		return () => {
+			document.removeEventListener('mousedown', handleClickOutside);
+		};
+	}, [isPanelOpen]);
+
 	return (
 		<>
 			<ArrowButton
@@ -59,6 +82,7 @@ export const ArticleParamsForm = (props: ArticleParamsFormProps) => {
 					isPanelOpen && styles.overlay_open
 				)}></div>
 			<aside
+				ref={sidebarRef}
 				className={clsx(
 					styles.container,
 					isPanelOpen && styles.container_open
@@ -71,40 +95,40 @@ export const ArticleParamsForm = (props: ArticleParamsFormProps) => {
 						Задайте параметры
 					</Text>
 					<Select
-						title='Шрифт'
+						title="Шрифт"
 						selected={currentState.fontFamilyOption}
 						options={fontFamilyOptions}
 						onChange={updateField('fontFamilyOption')}
 					/>
 					<RadioGroup
-						title='Размер шрифта'
-						name='fontSizeOption'
+						title="Размер шрифта"
+						name="fontSizeOption"
 						selected={currentState.fontSizeOption}
 						options={fontSizeOptions}
 						onChange={updateField('fontSizeOption')}
 					/>
 					<Select
-						title='Цвет шрифта'
+						title="Цвет шрифта"
 						selected={currentState.fontColor}
 						options={fontColors}
 						onChange={updateField('fontColor')}
 					/>
 					<Separator />
 					<Select
-						title='Цвет фона'
+						title="Цвет фона"
 						selected={currentState.backgroundColor}
 						options={fontColors}
 						onChange={updateField('backgroundColor')}
 					/>
 					<Select
-						title='Ширина контента'
+						title="Ширина контента"
 						selected={currentState.contentWidth}
 						options={contentWidthArr}
 						onChange={updateField('contentWidth')}
 					/>
 					<div className={styles.bottomContainer}>
-						<Button title='Сбросить' htmlType='reset' type='clear' />
-						<Button title='Применить' type='apply' />
+						<Button title="Сбросить" htmlType="reset" type="clear" />
+						<Button title="Применить" type="apply" />
 					</div>
 				</form>
 			</aside>

@@ -46,7 +46,6 @@ export const ArticleParamsForm = (props: ArticleParamsFormProps) => {
 		setCurrentState(defaultArticleState);
 		setPageState(defaultArticleState);
 	};
-
 	return (
 		<>
 			<ArrowButton
